@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>example DI Container</title>
+  </head>
+  <body>
+    <form>
+      <div>
+        <label for="user">User API</label>
+        <button data-action="call_user">Call User API</button>
+        <button data-action="create_user">Create User API</button>
+      </div>
+    </form>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
+  <script>
+    const actions = {
+      call_user() {
+        console.log('execute: call_user')
+        axios.get('/api/users').then((response) => {
+          console.log('fetch users', response)
+        })
+      },
+      create_user() {
+        console.log('execute: create_user')
+        axios.post('/api/users', { id: 2, name: 'hanako' }).then((response) => {
+          console.log('resolve', response)
+        })
+      }
+    }
+
+    document.querySelectorAll('[data-action]').forEach((element) => {
+      console.log(element)
+      element.addEventListener(
+        'click',
+        (ev) => {
+          ev.preventDefault()
+          const action = element.getAttribute('data-action')
+          if (actions[action]) {
+            actions[action]()
+          }
+        },
+        false
+      )
+    })
+  </script>
+</html>
