@@ -1,7 +1,11 @@
 import { PrismaClient } from "@prisma/client";
+import { Request } from "express";
 import { inject, injectable } from "inversify";
 import { InputPort } from "~/input-port";
+import { CriteriaPort, QueryResponsePort, QuerySpecPort } from "~/lib/query";
 import { OutputPort } from "~/middlewares/content-negotiation";
+import { PrismaClientWrapper } from "~/modules/prisma";
+import { QueryRunner } from "../modules/query";
 import { Transaction } from "../modules/transaction";
 
 @injectable()
@@ -13,12 +17,14 @@ export class CreateUserInteractor implements InputPort {
     private prisma: PrismaClient,
     @inject(Transaction)
     private txn: Transaction,
+    @inject('Request')
+    private request: Request,
+    @inject(QueryRunner)
+    private query: QueryRunner
   ) { }
 
   async interact(): Promise<void> {
-    const is_exists = await this.prisma.user.findFirst()
     await this.txn.exec(async (prisma) => {
-      const is_exists = await this.prisma.user.findFirst()
       const user = await prisma.user.create({
         data: {
         }
@@ -29,7 +35,42 @@ export class CreateUserInteractor implements InputPort {
           content: 'taro',
         }
       })
+      const user2 = await this.query.get(UserQuerySpec).one({ id: user.id })
+      console.log(user, user2)
     })
     this.presenter.output(204)
+  }
+}
+
+class UserQueryData implements QueryResponsePort {
+  public id: number
+  public name: string
+
+  constructor(attr: any) {
+    this.id = attr.id
+    this.name = attr.name.content
+  }
+}
+
+class UserQuerySpec implements QuerySpecPort<UserQueryData> {
+  data_class = UserQueryData
+
+  source = {
+    driver: 'prisma',
+    runner: (prisma: PrismaClientWrapper, { where, take }: CriteriaPort) => {
+      return prisma.user.findMany({
+        where,
+        take,
+        include: {
+          name: true,
+        }
+      })
+    }
+  } as const
+
+  input = {
+    rules: {
+      id: 'where:id',
+    }
   }
 }

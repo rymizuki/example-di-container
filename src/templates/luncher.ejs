@@ -12,6 +12,7 @@
         <button data-action="call_user">Call User API</button>
         <button data-action="create_user">Create User API</button>
       </div>
+      <div data-view="users"></div>
     </form>
   </body>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
@@ -21,6 +22,8 @@
         console.log('execute: call_user')
         axios.get('/api/users').then((response) => {
           console.log('fetch users', response)
+          views.users.data = response.data
+          app.renderView()
         })
       },
       create_user() {
@@ -31,19 +34,56 @@
       }
     }
 
-    document.querySelectorAll('[data-action]').forEach((element) => {
-      console.log(element)
-      element.addEventListener(
-        'click',
-        (ev) => {
-          ev.preventDefault()
-          const action = element.getAttribute('data-action')
-          if (actions[action]) {
-            actions[action]()
+    const views = {
+      users: {
+        data: [],
+        render(element) {
+          while (element.firstChild) {
+            element.removeChild(element.firstChild)
           }
-        },
-        false
-      )
-    })
+          this.data
+            .map((user) => {
+              const div = document.createElement('div')
+              const text = document.createTextNode(user.name.content)
+              div.appendChild(text)
+              return div
+            })
+            .forEach((child) => {
+              element.appendChild(child)
+            })
+        }
+      }
+    }
+
+    const app = {
+      triggerAction() {
+        document.querySelectorAll('[data-action]').forEach((element) => {
+          element.addEventListener(
+            'click',
+            (ev) => {
+              ev.preventDefault()
+              const action = element.getAttribute('data-action')
+              if (actions[action]) {
+                actions[action]()
+              }
+            },
+            false
+          )
+        })
+      },
+      renderView() {
+        document.querySelectorAll('[data-view]').forEach((element) => {
+          const id = element.getAttribute('data-view')
+          const renderer = views[id]
+          if (!renderer) {
+            return
+          }
+          renderer.render(element)
+        })
+      }
+    }
+
+    app.triggerAction()
+    app.renderView()
   </script>
 </html>

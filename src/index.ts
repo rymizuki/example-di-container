@@ -13,6 +13,7 @@ import { module as presenter_module } from './middlewares/content-negotiation'
 import { module as renderer_module } from "./modules/renderer"
 import { module as prisma_module } from './modules/prisma'
 import { module as transaction_module } from './modules/transaction'
+import { module as query_module } from './modules/query'
 
 const app = express()
 
@@ -33,6 +34,7 @@ app.use(container(
   renderer_module,
   prisma_module,
   transaction_module,
+  query_module,
 ))
 
 /**

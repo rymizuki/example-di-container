@@ -32,17 +32,18 @@ __export(create_user_exports, {
 });
 module.exports = __toCommonJS(create_user_exports);
 var import_inversify = require("inversify");
+var import_query2 = require("../modules/query");
 var import_transaction = require("../modules/transaction");
 let CreateUserInteractor = class {
-  constructor(presenter, prisma, txn) {
+  constructor(presenter, prisma, txn, request, query) {
     this.presenter = presenter;
     this.prisma = prisma;
     this.txn = txn;
+    this.request = request;
+    this.query = query;
   }
   async interact() {
-    const is_exists = await this.prisma.user.findFirst();
     await this.txn.exec(async (prisma) => {
-      const is_exists2 = await this.prisma.user.findFirst();
       const user = await prisma.user.create({
         data: {}
       });
@@ -52,6 +53,8 @@ let CreateUserInteractor = class {
           content: "taro"
         }
       });
+      const user2 = await this.query.get(UserQuerySpec).one({ id: user.id });
+      console.log(user, user2);
     });
     this.presenter.output(204);
   }
@@ -60,8 +63,38 @@ CreateUserInteractor = __decorateClass([
   (0, import_inversify.injectable)(),
   __decorateParam(0, (0, import_inversify.inject)("OutputPort")),
   __decorateParam(1, (0, import_inversify.inject)("Prisma")),
-  __decorateParam(2, (0, import_inversify.inject)(import_transaction.Transaction))
+  __decorateParam(2, (0, import_inversify.inject)(import_transaction.Transaction)),
+  __decorateParam(3, (0, import_inversify.inject)("Request")),
+  __decorateParam(4, (0, import_inversify.inject)(import_query2.QueryRunner))
 ], CreateUserInteractor);
+class UserQueryData {
+  id;
+  name;
+  constructor(attr) {
+    this.id = attr.id;
+    this.name = attr.name.content;
+  }
+}
+class UserQuerySpec {
+  data_class = UserQueryData;
+  source = {
+    driver: "prisma",
+    runner: (prisma, { where, take }) => {
+      return prisma.user.findMany({
+        where,
+        take,
+        include: {
+          name: true
+        }
+      });
+    }
+  };
+  input = {
+    rules: {
+      id: "where:id"
+    }
+  };
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   CreateUserInteractor

@@ -29,6 +29,7 @@ var import_content_negotiation = require("./middlewares/content-negotiation");
 var import_renderer = require("./modules/renderer");
 var import_prisma = require("./modules/prisma");
 var import_transaction = require("./modules/transaction");
+var import_query = require("./modules/query");
 import_dotenv.default.config({ path: ".env.development" });
 const app = (0, import_express.default)();
 app.use((0, import_container.container)(
@@ -44,7 +45,8 @@ app.use((0, import_container.container)(
   import_content_negotiation.module,
   import_renderer.module,
   import_prisma.module,
-  import_transaction.module
+  import_transaction.module,
+  import_query.module
 ));
 app.get("/", interact(import_luncher.LuncherInteractor));
 app.get("/api/users", interact(import_read_users.ReadUsersInteractor));

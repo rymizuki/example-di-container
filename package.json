@@ -27,6 +27,7 @@
     "ejs": "^3.1.8",
     "express": "^4.18.2",
     "inversify": "^6.0.1",
+    "just-safe-set": "^4.2.0",
     "prisma": "^4.7.1",
     "reflect-metadata": "^0.1.13"
   }
